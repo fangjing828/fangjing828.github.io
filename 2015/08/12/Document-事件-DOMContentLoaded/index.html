@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Hexo</title>
+  <title>Document 事件 - 页面加载完成事件 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="my technique site">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://fangjing828.github.io/index.html">
+  <meta name="description" content="综述DOM 加载完成事件：DOMContentLoaded、window.onload、onreadystatechange,对于 IE 浏览器还可以使用 doscroll 方法进行判断。DOMContentLoaded 事件是在 DOM 加载解析完毕时触发,是判断页面加载完成的首选方法。window.onload 需要等待所有的外部事件加载完毕时触发，方法被主流浏览器所支持。onreadysta">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Document 事件 - 页面加载完成事件">
+<meta property="og:url" content="http://fangjing828.github.io/2015/08/12/Document-事件-DOMContentLoaded/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="my technique site">
+<meta property="og:description" content="综述DOM 加载完成事件：DOMContentLoaded、window.onload、onreadystatechange,对于 IE 浏览器还可以使用 doscroll 方法进行判断。DOMContentLoaded 事件是在 DOM 加载解析完毕时触发,是判断页面加载完成的首选方法。window.onload 需要等待所有的外部事件加载完毕时触发，方法被主流浏览器所支持。onreadysta">
+<meta property="og:updated_time" content="2015-08-12T16:15:55.542Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
-<meta name="twitter:description" content="my technique site">
+<meta name="twitter:title" content="Document 事件 - 页面加载完成事件">
+<meta name="twitter:description" content="综述DOM 加载完成事件：DOMContentLoaded、window.onload、onreadystatechange,对于 IE 浏览器还可以使用 doscroll 方法进行判断。DOMContentLoaded 事件是在 DOM 加载解析完毕时触发,是判断页面加载完成的首选方法。window.onload 需要等待所有的外部事件加载完毕时触发，方法被主流浏览器所支持。onreadysta">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -71,9 +72,7 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-Document-事件-DOMContentLoaded" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-Document-事件-DOMContentLoaded" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/08/12/Document-事件-DOMContentLoaded/" class="article-date">
   <time datetime="2015-08-12T14:01:56.000Z" itemprop="datePublished">2015-08-12</time>
@@ -86,8 +85,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/12/Document-事件-DOMContentLoaded/">Document 事件 - 页面加载完成事件</a>
+    <h1 class="article-title" itemprop="name">
+      Document 事件 - 页面加载完成事件
     </h1>
   
 
@@ -124,92 +123,20 @@
     </footer>
   </div>
   
-</article>
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-first" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/12/first/" class="article-date">
-  <time datetime="2015-08-12T00:12:44.000Z" itemprop="datePublished">2015-08-12</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/12/first/">first</a>
-    </h1>
+    <a href="/2015/08/12/first/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">first</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/12/first/" data-id="cid8x3k60000cu8hz7pp1h7wp" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
   
 </article>
 
-
-  
-    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/12/hello-world/" class="article-date">
-  <time datetime="2015-08-11T22:59:07.836Z" itemprop="datePublished">2015-08-12</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/12/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a href="http://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="http://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="http://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick_Start">Quick Start</h2><h3 id="Create_a_new_post">Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run_server">Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate_static_files">Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy_to_remote_sites">Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="http://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/12/hello-world/" data-id="cid8x3k5w000bu8hzfsxvu6nl" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-  
 </section>
         
           <aside id="sidebar">
