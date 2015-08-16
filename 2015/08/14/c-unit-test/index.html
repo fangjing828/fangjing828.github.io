@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Tag: javascript | Hexo</title>
+  <title>c# - unit test | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="my technique site">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://fangjing828.github.io/tags/javascript/index.html">
+  <meta name="description" content="事务TransactionScope123456789101112using (TransactionScope scope = new TransactionScope())&amp;#123;	using (SqlConnection connection = new SqlConnection(connectionStr)	&amp;#123;		connection.open();		SqlCommand">
+<meta property="og:type" content="article">
+<meta property="og:title" content="c# - unit test">
+<meta property="og:url" content="http://fangjing828.github.io/2015/08/14/c-unit-test/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="my technique site">
+<meta property="og:description" content="事务TransactionScope123456789101112using (TransactionScope scope = new TransactionScope())&amp;#123;	using (SqlConnection connection = new SqlConnection(connectionStr)	&amp;#123;		connection.open();		SqlCommand">
+<meta property="og:updated_time" content="2015-08-14T14:27:07.432Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
-<meta name="twitter:description" content="my technique site">
+<meta name="twitter:title" content="c# - unit test">
+<meta name="twitter:description" content="事务TransactionScope123456789101112using (TransactionScope scope = new TransactionScope())&amp;#123;	using (SqlConnection connection = new SqlConnection(connectionStr)	&amp;#123;		connection.open();		SqlCommand">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -71,39 +72,64 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2015" class="archive-year">2015</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2015/08/12/javascript-DOM_Event-页面加载事件/" class="archive-article-date">
-  <time datetime="2015-08-12T14:01:56.000Z" itemprop="datePublished">8月 12</time>
+        <section id="main"><article id="post-c-unit-test" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/14/c-unit-test/" class="article-date">
+  <time datetime="2015-08-13T23:05:47.000Z" itemprop="datePublished">2015-08-14</time>
 </a>
-      
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2015/08/12/javascript-DOM_Event-页面加载事件/">javascript - DOM Event - 页面加载完成事件</a>
+    <h1 class="article-title" itemprop="name">
+      c# - unit test
     </h1>
   
 
-    </header>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="事务">事务</h2><p><a href="https://msdn.microsoft.com/zh-cn/library/system.transactions.transactionscope.aspx" target="_blank" rel="external">TransactionScope</a><br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> (TransactionScope scope = <span class="keyword">new</span> TransactionScope())</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">using</span> (SqlConnection connection = <span class="keyword">new</span> SqlConnection(connectionStr)</span><br><span class="line">	&#123;</span><br><span class="line">		connection.open();</span><br><span class="line">		SqlCommand command = <span class="keyword">new</span> SqlCommand(commandText, connection);</span><br><span class="line">		command.ExecuteNoQuery();</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// commit the transaction</span></span><br><span class="line">	scope.commit();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="多线程并发测试">多线程并发测试</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/14/c-unit-test/" data-id="cide0dmyk000jykhzpwlxivm5" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/unit-test/">unit test</a></li></ul>
+
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/08/14/java-thread-pool/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          java-thread-pool
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/08/13/java-spring-xsd/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">java - spring xsd</div>
+    </a>
+  
+</nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
+
 </section>
         
           <aside id="sidebar">
