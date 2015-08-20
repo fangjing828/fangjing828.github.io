@@ -73,6 +73,509 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-csharp-HttpResponse-rewrite" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/19/csharp-HttpResponse-rewrite/" class="article-date">
+  <time datetime="2015-08-19T14:17:49.000Z" itemprop="datePublished">2015-08-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/csharp/">csharp</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/19/csharp-HttpResponse-rewrite/">csharp-HttpResponse-rewrite</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="HttpModule">HttpModule</h2><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ResponseFilter</span>: <span class="title">MemoryStream</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">private</span> Stream inner;</span><br><span class="line">	<span class="keyword">private</span> Dictionary&lt;<span class="keyword">string</span>, <span class="keyword">string</span>&gt; keyValues;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">readonly</span> Regex regex = <span class="keyword">new</span> Regex(<span class="string">"\\$\\&#123;.+\\&#125;"</span>);</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">ReplaceFilter</span>(<span class="params">Stream inner, Dictionary&lt;<span class="keyword">string</span>, <span class="keyword">string</span>&gt; keyValues</span>)</span><br><span class="line">	</span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.inner = inner;</span><br><span class="line">		<span class="keyword">this</span>.keyValues = keyValues;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="title">Write</span>(<span class="params"><span class="keyword">byte</span>[] buffer, <span class="keyword">int</span> offset, <span class="keyword">int</span> count</span>)</span><br><span class="line">	</span>&#123;</span><br><span class="line">		<span class="keyword">string</span> text = System.Text.Encoding.UTF8.GetString(buffer);</span><br><span class="line">		<span class="keyword">byte</span>[] byteArray = System.Text.Encoding.UTF8.GetBytes(Replace(text));</span><br><span class="line">		inner.Write(byteArray, offset, byteArray.Length);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">string</span> <span class="title">Replace</span>(<span class="params"><span class="keyword">string</span> text</span>)</span><br><span class="line"> 	</span>&#123;</span><br><span class="line">		<span class="keyword">string</span> res = text;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			res = regex.Replace(text, <span class="keyword">new</span> MatchEvaluator((Match m) =&gt; &#123;</span><br><span class="line">				<span class="keyword">var</span> tmp = m.ToString();</span><br><span class="line">				tmp = tmp.Trim(<span class="keyword">new</span> <span class="keyword">char</span>[] &#123; <span class="string">'$'</span>, <span class="string">'&#123;'</span>, <span class="string">'&#125;'</span> &#125;);</span><br><span class="line">				<span class="keyword">if</span> (keyValues.ContainsKey(tmp))</span><br><span class="line">				&#123;</span><br><span class="line">					<span class="keyword">return</span> keyValues[tmp];</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> <span class="string">""</span>;</span><br><span class="line">			&#125;));</span><br><span class="line">		&#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">			res = text;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> res;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">RewriteModule</span> : <span class="title">IHttpModule</span> &#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Init</span>(<span class="params">HttpApplication context</span>) </span>&#123;</span><br><span class="line">		context.AuthorizeRequest += <span class="keyword">new</span> EventHandler((sender, e) =&gt; &#123;</span><br><span class="line">			HttpApplication application = (HttpApplication)sender;</span><br><span class="line">			HttpResponse response = application.Context.Response;</span><br><span class="line">			Dictionary&lt;<span class="keyword">string</span>, <span class="keyword">string</span>&gt; <span class="keyword">params</span>;</span><br><span class="line">			response.Filter = <span class="keyword">new</span> ReplaceFilter(response.Filter, <span class="keyword">params</span>);</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="HttpHandler">HttpHandler</h2><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ResponseFilter</span> : <span class="title">IHttpHandler</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ProcessRequest</span>(<span class="params">HttpContext context</span>) </span>&#123;</span><br><span class="line">		Dictionary&lt;<span class="keyword">string</span>, <span class="keyword">string</span>&gt; <span class="keyword">params</span>;</span><br><span class="line">		NameValueCollection queryString = context.Request.QueryString;</span><br><span class="line">		<span class="keyword">foreach</span> (<span class="keyword">string</span> key <span class="keyword">in</span> queryString.Keys)</span><br><span class="line">		&#123;</span><br><span class="line">			parameters.Add(key, queryString[key]);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">string</span> filePath = context.Server.MapPath(context.Request.AppRelativeCurrentExecutionFilePath);</span><br><span class="line"></span><br><span class="line">		FileStream file = <span class="keyword">new</span> FileStream(filePath, FileMode.Open);</span><br><span class="line">		HttpResponse response = context.Response;</span><br><span class="line">		<span class="keyword">using</span> (StreamReader reader = <span class="keyword">new</span> StreamReader(file))</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">string</span> text = reader.ReadToEnd();</span><br><span class="line">			text = regex.Replace(text,<span class="keyword">new</span> MatchEvaluator((Match m) =&gt;&#123;</span><br><span class="line">				<span class="keyword">var</span> tmp = m.ToString();</span><br><span class="line">				tmp = tmp.Trim(<span class="keyword">new</span> <span class="keyword">char</span>[]&#123;<span class="string">'$'</span>, <span class="string">'&#123;'</span>, <span class="string">'&#125;'</span>&#125;);</span><br><span class="line">				<span class="keyword">if</span> (parameters.ContainsKey(tmp))</span><br><span class="line">				&#123;</span><br><span class="line">					<span class="keyword">return</span> parameters[tmp];</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> <span class="string">""</span>;</span><br><span class="line">			&#125;));</span><br><span class="line">		&#125;</span><br><span class="line">		response.Write(text);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/19/csharp-HttpResponse-rewrite/" data-id="cidjgvj0o002o8khzjtlgixc9" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/csharp/">csharp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/httpResponse/">httpResponse</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-javascript-angularJS-表单验证" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/18/javascript-angularJS-表单验证/" class="article-date">
+  <time datetime="2015-08-18T14:25:40.000Z" itemprop="datePublished">2015-08-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/javascript/">javascript</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/18/javascript-angularJS-表单验证/">javascript-angularJS-表单验证</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="必填项验证">必填项验证</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">required</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="最小长度">最小长度</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-minlength</span>=<span class="value">"5"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="最大长度">最大长度</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-maxlength</span>=<span class="value">"20"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="模式匹配">模式匹配</h2><p>使用 ng-pattern=”/PATTERN/“ 来确保输入能匹配指定正则表达式。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-pattern</span>=<span class="value">"/[a-zA-z]/"</span> /&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="电子邮件">电子邮件</h2><p>验证输入内容是否是电子邮件。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"email"</span> <span class="attribute">name</span>=<span class="value">"email"</span> <span class="attribute">ng-model</span>=<span class="value">"user.email"</span>/&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>验证输入内容是否是数字，将 input 类型设置为 number。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"number"</span> <span class="attribute">name</span>=<span class="value">"age"</span> <span class="attribute">ng-model</span>=<span class="value">"user.age"</span>/&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="URL">URL</h2><p>验证输入内容是否为 URL<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"url"</span> <span class="attribute">name</span>=<span class="value">"homepage"</span> <span class="attribute">ng-model</span>=<span class="value">"user.blog"</span>/&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>.ng-valid         {  }<br>.ng-invalid     {  }<br>.ng-pristine     {  }<br>.ng-dirty         {  }<br> really specific css rules applied by angular<br>.ng-invalid-required         {  }<br>.ng-invalid-minlength         {  }<br>.ng-valid-max-length         {  }</p>
+<p>viewValue</p>
+<p>$viewValue属性保存着更新视图所需的实际字符串。</p>
+<p>$modelValue</p>
+<p>$modelValue由数据模型持有。$modelValue和$viewValue可能是不同的，取决于$parser流水线是否对其进行了操作。</p>
+<p>$parsers </p>
+<p>$parsers的值是一个由函数组成的数组，当用户同控制器进行交互，并且ngModelController中的$setViewValue()方法被调用时，其中的函数在当用户同控制器进行交互，并且ngModelController中的$setViewValue()方法被调会以流水线的形式被逐一调用。ngModel从DOM中读取的值会被传入$parsers中的函数，并依次被其中的解析器处理。这是为了对值进行处理和修饰。</p>
+<p>备注：ngModel.$setViewValue()函数用于设置作用域中的视图值。</p>
+<p>ngModel.$set ViewValue()函数可以接受一个参数。</p>
+<p>value（字符串）：value参数是我们想要赋值给ngModel实例的实际值。</p>
+<p>这个方法会更新控制器上本地的$viewValue，然后将值传递给每一个$parser函数（包括验证器）。当值被解析，且$parser流水线中所有的函数都调用完成后，值会被赋给$modelValue属性，并且传递给指令中ng-model属性提供的表达式。最后，所有步骤都完成后，$viewChangeListeners中所有的监听器都会被调用。注意，单独调用$setViewValue()不会唤起一个新的digest循环，因此如果想更新指令，需要在设置$viewValue后手动触发digest。$setViewValue()方法适合于在自定义指令中监听自定义事件（比如使用具有回调函数的jQuery插件），我们会希望在回调时设置$viewValue并执行digest循环。</p>
+<p>$formatters</p>
+<p>$formatters的值是一个由函数组成的数组，其中的函数会以流水线的形式在数据模型的值发生变化时被逐一调用。它和$parser流水线互不影响，用来对值进行格式化和转换，以便在绑定了这个值的控件中显示。</p>
+<p> $viewChangeListeners</p>
+<p>$viewChangeListeners的值是一个由函数组成的数组，其中的函数会以流水线的形式在视图中的值发生变化时被逐一调用。通过$viewChangeListeners，可以在无需使用$watch的情况下实现类似的行为。由于返回值会被忽略，因此这些函数不需要返回值。</p>
+<p> $error</p>
+<p>$error对象中保存着没有通过验证的验证器名称以及对应的错误信息。</p>
+<p> $pristine</p>
+<p>$pristine的值是布尔型的，可以告诉我们用户是否对控件进行了修改。</p>
+<p> $dirty</p>
+<p>$dirty的值和$pristine相反，可以告诉我们用户是否和控件进行过交互。</p>
+<p>$valid</p>
+<p>$valid值可以告诉我们当前的控件中是否有错误。当有错误时值为false，没有错误时值为true。</p>
+<p>$invalid</p>
+<p>$invalid值可以告诉我们当前控件中是否存在至少一个错误，它的值和$valid相反。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/18/javascript-angularJS-表单验证/" data-id="cidjgviyr000u8khzv520dtuo" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/angularJS/">angularJS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-csharp-IPEndPoint" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/18/csharp-IPEndPoint/" class="article-date">
+  <time datetime="2015-08-18T13:20:34.000Z" itemprop="datePublished">2015-08-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/csharp/">csharp</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/18/csharp-IPEndPoint/">csharp-IPEndPoint</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="域名获取_IP_地址">域名获取 IP 地址</h2><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">IPHostEntry host = Dns.GetHostEntry(<span class="string">"www.baidu.com"</span>);</span><br><span class="line"><span class="keyword">string</span> ip = host.AddressList[<span class="number">0</span>].ToString();</span><br></pre></td></tr></table></figure>
+<h2 id="域名绑定_IP">域名绑定 IP</h2><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">string url;&#10;string ip;&#10;string host;&#10;string[] components = url.split(&#34;/&#34;);&#10;host = components[2];&#10;components[2] = ip;&#10;url = string.Join(&#34;/&#34;, components);&#10;HttpWebRequest request = new HttpWebRequest(url)&#10;string &#10;## bindIP&#10;request.Host=host;</span><br></pre></td></tr></table></figure>
+<p><strong>NOTE</strong>:BindIPEndPointDelegate is for choosing a local EndPoint for the request to originate from, not for choosing the remote one.</p>
+<h2 id="Q&amp;A">Q&amp;A</h2><ol>
+<li>异常处理:必须使用适当的属性或方法修改此标头<blockquote>
+<p>通常通过 WebRequest.Headers 或 WebResponse.Headers 访问 WebHeaderCollection 类。<br>某些公共标头被视为受限制的，它们或者直接由 API（如 Content-Type）公开，或者受到系统保护，不能被更改。</p>
+</blockquote>
+</li>
+</ol>
+<p>受限制的 Header</p>
+<ul>
+<li>Accept</li>
+<li>Connection</li>
+<li>Content-Length</li>
+<li>Content-Type</li>
+<li>Date</li>
+<li>Expect</li>
+<li>Host</li>
+<li>If-Modified-Since</li>
+<li>Range</li>
+<li>Referer</li>
+<li>Transfer-Encoding</li>
+<li>User-Agent</li>
+<li>Proxy-Connection</li>
+</ul>
+<h3 id="修改受限制的_Header">修改受限制的 Header</h3><ol>
+<li>继承 WebHeaderCollection，通过 AddWithoutValidate 方法来添加表头</li>
+</ol>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">InheritWebHeaders</span> : <span class="title">WebHeaderCollection</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">/*</span><br><span class="line">	define your properties &amp; methods here. -- by Mitchell Chu</span><br><span class="line">	*/</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">AddHeaderWithoutValidate</span>(<span class="params"><span class="keyword">string</span> name, <span class="keyword">string</span> <span class="keyword">value</span></span>)</span><br><span class="line">	</span>&#123;</span><br><span class="line">		<span class="keyword">base</span> .AddWithoutValidate(name, <span class="keyword">value</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">HttpWebRequest request = (HttpWebRequest)WebRequest.Create( <span class="string">"http://blog.useasp.net/"</span> );</span><br><span class="line">InheritWebHeaders headers = <span class="keyword">new</span> InheritWebHeaders();</span><br><span class="line">headers.AddHeaderWithoutValidate( <span class="string">"Referrer"</span> , <span class="string">"http://blog.useasp.net/tag/.net"</span> );</span><br><span class="line">request.Headers = headers;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>判断 Header 的键值属性</li>
+</ol>
+<pre><code class="csharp"><span class="keyword">foreach</span> ( <span class="keyword">string</span> key <span class="keyword">in</span> headers.AllKeys)
+{
+    <span class="keyword">if</span> (!WebHeaderCollection.IsRestricted(key))
+        request.Headers.Add(key, headers[key]);
+    <span class="keyword">else</span>
+    {
+        request[key] = headers[key];
+    }
+}
+</code></pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/18/csharp-IPEndPoint/" data-id="cidjgvj0i002h8khzpyt1h44j" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/IPEndPoint/">IPEndPoint</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/csharp/">csharp</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-java-framework-config" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/18/java-framework-config/" class="article-date">
+  <time datetime="2015-08-17T23:46:09.000Z" itemprop="datePublished">2015-08-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/java/">java</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/18/java-framework-config/">java-framework-config</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="配置在框架中的作用">配置在框架中的作用</h2><ol>
+<li>避免硬编码。</li>
+<li>指定映射关系。</li>
+<li>系统运行时参数<h3 id="避免硬编码">避免硬编码</h3>Spring 的 xml 配置文件(提供对象的初始参数)，配合 @Autowired 创建对象。<h3 id="指定映射关系">指定映射关系</h3>Hibernate 的 ORM 映射,URL 与 Control 层的 Java 类的映射关系。</li>
+</ol>
+<h2 id="现状">现状</h2><blockquote>
+<p>要求：不丧失程序的灵活性，但要保持尽量简单。</p>
+<p>形式：表现形式的多样化和<strong>命名约定</strong>的广泛使用性。</p>
+</blockquote>
+<h2 id="讨论">讨论</h2><p>配置文件被认为是架起外界与程序之间的桥梁、是反应框架内部功能的一面镜子、更是程序是否灵活的一个重要标准</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/18/java-framework-config/" data-id="cidjgvj0c002b8khzc3injf2o" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/config/">config</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/framework/">framework</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-java-spring-framework" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/17/java-spring-framework/" class="article-date">
+  <time datetime="2015-08-17T14:02:02.000Z" itemprop="datePublished">2015-08-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/java/">java</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/17/java-spring-framework/">java-spring-framework</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="综述">综述</h2><blockquote>
+<p>为什么要学习框架？框架带来了什么？</p>
+</blockquote>
+<h2 id="Web_程序发展变化史">Web 程序发展变化史</h2><ol>
+<li>Servlet</li>
+<li>JSP</li>
+<li>框架<h3 id="Servlet">Servlet</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoginServlet</span> <span class="keyword">extends</span> <span class="title">HttpServlet</span> </span>&#123;</span><br><span class="line">	<span class="annotation">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doPost</span><span class="params">(HttpServletRequest req, HttpServletResponse resp)</span> <span class="keyword">throws</span> ServletException, IOException </span>&#123;</span><br><span class="line">		String message = <span class="keyword">null</span>;</span><br><span class="line">		RequestDispatcher dispatcher = req.getRequestDispatcher(<span class="string">"/result.jsp"</span>);</span><br><span class="line">		String name = req.getParameter(<span class="string">"name"</span>);</span><br><span class="line">		String password = req.getParameter(<span class="string">"password"</span>);</span><br><span class="line">		</span><br><span class="line">		UserHandler userHandler = <span class="keyword">new</span> UserHandler();</span><br><span class="line">		<span class="keyword">if</span> (userHandler.authenthicate(name, password) &#123;</span><br><span class="line">			message = <span class="string">"login success"</span>;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			message = <span class="string">"login failed"</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		req.setAttribute(<span class="string">"message"</span>, message);</span><br><span class="line">		dispatcher.forward(req, resp);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>servlet 在 web.xml 中配置。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">servlet</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="title">servlet-name</span>&gt;</span>Login<span class="tag">&lt;/<span class="title">servlet-name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="title">servlet-class</span>&gt;</span></span><br><span class="line">		com.LoginServlet</span><br><span class="line">	<span class="tag">&lt;/<span class="title">servlet-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">servlet</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">servlet-mapping</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="title">servlet-name</span>&gt;</span>Login<span class="tag">&lt;/<span class="title">servlet-name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="title">url-pattern</span>&gt;</span>/Login<span class="tag">&lt;/<span class="title">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">servlet-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="JSP">JSP</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">%</span></span><br><span class="line">	<span class="attribute">String</span> <span class="attribute">name</span> = <span class="attribute">request.getParameter</span>("<span class="attribute">name</span>");</span><br><span class="line">	<span class="attribute">String</span> <span class="attribute">password</span> = <span class="attribute">request.getParameter</span>("<span class="attribute">password</span>");</span><br><span class="line"></span><br><span class="line">	<span class="attribute">UserHandler</span> <span class="attribute">userHander</span> = <span class="attribute">new</span> <span class="attribute">UserHandler</span>();</span><br><span class="line">	<span class="attribute">if</span> (<span class="attribute">userHandler.authenticate</span>(<span class="attribute">name</span>, <span class="attribute">password</span>)) &#123;</span><br><span class="line">%&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">p</span>&gt;</span> login success <span class="tag">&lt;/<span class="title">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">%</span></span><br><span class="line">	&#125; <span class="attribute">else</span> &#123;</span><br><span class="line">%&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">p</span>&gt;</span> login failed <span class="tag">&lt;/<span class="title">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">%</span></span><br><span class="line">	&#125;</span><br><span class="line">%&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="框架">框架</h3><ul>
+<li>配置</li>
+<li>注解<br>Struct 解决了 web 开发中的<strong>职责分配问题</strong>，实现了显示与逻辑分离。<h3 id="Web_开发需要什么">Web 开发需要什么</h3></li>
+</ul>
+<ol>
+<li>数据</li>
+<li>页面 (客户端生产与消费数据) <strong>信息</strong></li>
+<li>业务 (服务端生产与消费数据）<strong>信息</strong><br><strong>NOTE</strong>:<strong>信息</strong>用于消除不确定性<br><img src="/image/mvc.jpg" alt="mvc framewor"></li>
+</ol>
+<p>数据 (M, Model) 在页面 （V, View) 与 业务（C, Controller) 中流动带来的问题：</p>
+<ol>
+<li>数据的序列化与反序列化问题。</li>
+<li>序列化效率(json, xml, protobuffer)</li>
+<li>数据格式与内容的校验。</li>
+<li>数据如何在页面展示。</li>
+<li>数据请求从 View 层到 Controller 层。如何知道请求调用时那个类，那个方法？ Http Request 又如何在 Control 层的 Java 建立关系。</li>
+</ol>
+<p>Controll 层还需要关心的问题</p>
+<ol>
+<li>作为逻辑处理程序的 facade 门面，如果逻辑处理程序发生异常，该如何处理？</li>
+<li>对于逻辑处理的结果，我需要做什么样的处理，才能满足丰富的前台展示需要。</li>
+</ol>
+<blockquote>
+<p>这一个又一个问题的提出，都基于对MVC的基本概念的挖掘。所以，这些问题都需要我们在写程序的时候去一一解决。说到这里，这篇文章开头所提的问题应该可以有答案了：框架是为了解决一个又一个在Web开发中所遇到的问题而诞生的。不同的框架，都是为了解决不同的问题，但是对于程序员而言，他们只是jar包而已。框架的优缺点的评论，也完全取决于其对问题解决程度和解决方式的优雅性的评论。所以，千万不要为了学习框架而学习框架，而是要为了解决问题而学习框架，这才是一个程序员的正确学习之道。</p>
+</blockquote>
+<h2 id="参考文献">参考文献</h2><ol>
+<li><a href="http://struts2.group.iteye.com/group/wiki/1390-confusion-with-mvc-framework" target="_blank" rel="external">MVC 框架的困惑</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/17/java-spring-framework/" data-id="cidjgvizz00208khz9m9hzbiq" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/framework/">framework</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-javascript-angularJS-载入过程" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/16/javascript-angularJS-载入过程/" class="article-date">
+  <time datetime="2015-08-16T15:45:04.000Z" itemprop="datePublished">2015-08-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/javascript/">javascript</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/16/javascript-angularJS-载入过程/">javascript-angularJS-载入过程</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="preparation">preparation</h2><p>浏览器载入 HTML，解析成 DOM.</p>
+<h2 id="Process">Process</h2><ol>
+<li>浏览器载入 angular.js.</li>
+<li>DOMContentLoaded 事件触发 AngularJS 执行。</li>
+<li>AngularJS 需找 ng-app 指令所指示的应用边界(module)。</li>
+<li>ng-app </li>
+<li>使用 ng-app 指定模块配置注入器 ($injector)</li>
+<li>$injector 用于创建编译服务($compile service) 和 根作用域($rootScope)</li>
+<li>ng-init 指令将 ”word“ 赋值给作用域中变量 name。</li>
+<li> 表达式替换。</li>
+</ol>
+<h2 id="module">module</h2><p>module 是 angular 代码入口，需要先声明 module, 才可以定义其他组件元素。angular 的 module 封装了 controller、service、filter、directive、config、run 等组件。<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * name: 模块定义的名称，是唯一必选的参数。后边被其他模块注入或者 ng-app 指令声明程序主模块。</span><br><span class="line"> * requires: 模块的依赖，声明本模块需要依赖的其它模块参数。如果没有声明模块依赖，无法在模块中使用依赖模块任何组件。(可选参数)</span><br><span class="line"> * configFn: 模块启动配置函数。对模块组件进行实例化对象实例之前的特定配置，如常见的 $routeProvider 配置应用程序路由信息。等同于 module.config 函数。(可选参数)</span><br><span class="line">*/</span><br><span class="line">angular.module = function(name, require, configFn);</span><br><span class="line"></span><br><span class="line">/* 声明创建 module */</span><br><span class="line">angular.module("app-name",[dependency]);</span><br><span class="line"></span><br><span class="line">/* 获取已声明的 module */</span><br><span class="line">angular.module("app-name");</span><br></pre></td></tr></table></figure></p>
+<p><strong>NOTE</strong>:module 声明创建有且只有一次，获取已声明的 module 可以有多次。<br>angular 模块加载器 setupModuleLoader(window)<br>angular 在启动时，会设置全局的 angular 对象，然后在 angular 对象上发布 module 这个API。关于 module API 代码，能清晰的看见第一行谓语句，module 名称不能以 hasOwnProperty 命名，否则会抛出 ”badname“ 的错误信息。紧接着，如果传入了name 参数，其表示是声明 module，则会删除已有的module信息，将其置为null。</p>
+<p>从moduleInstance的定义，我们能够看出，angular.module为我们公开的API有：invokeQueue、runBlocks、requires、name、provider、factory、servic、value、constant、animation、filter、controller、directive、config、run。其中invokeQueue 和 runBlocks 是按名约定的私有属性，请不要随意使用，其他 API 都是我们常用的 angular 组件定义方法，从invokeLater 代码中能看到这类 angular 组件定义的返回依然是 moduleInstance 实例，这就形成了流畅 API，推荐使用链式定义这些组件，而不是声明一个全局的 module 变量。</p>
+<p>最后，如果传入了第三个参数 configFn，则会将它配置到 config 信息中，当 angular 进入 config 阶段时，它们将会依次执行，进行对 angular 应用或者 angular 组件如 service 等的实例化前的配置。<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">function setupModuleLoader(window) &#123;</span><br><span class="line">	function ensure(obj, name, factory) &#123;</span><br><span class="line">		return obj[name] || (obj[name] = factory())</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	var angular = ensure(window, 'angular', Object);</span><br><span class="line">	return ensure(angular, 'module', function() &#123;</span><br><span class="line">		var modules = &#123;&#125;;</span><br><span class="line">		return function module(name, requires, configFn) &#123;</span><br><span class="line">			var assertNotHasOwnProperty = function(name, context) &#123;</span><br><span class="line">				if (name === 'hasOwnProperty') &#123;</span><br><span class="line">					throw ngMinErr('badname', '</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;;</span><br><span class="line">			assertNotHasOwnProperty(name, 'module');</span><br><span class="line">			if (requires &amp;&amp; modules.hasOwnProperty(name)) &#123;</span><br><span class="line">				modules[name] = null;</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			return ensure(modules, name, function() &#123;</span><br><span class="line">				if (!requires) &#123;</span><br><span class="line">                	throw $injectorMinErr('nomod', "Module '&#123;0&#125;' is not available! </span><br><span class="line">					You either misspelled " +</span><br><span class="line">                    "the module name or forgot to load it. If registering a module ensure that you " +</span><br><span class="line">                    "specify the dependencies as the second argument.", name);</span><br><span class="line">				&#125;</span><br><span class="line">				var invokeQueue = [];</span><br><span class="line">				var runBlocks = [];</span><br><span class="line">				var config = invokeLater('$injector', 'invoke');</span><br><span class="line">				var moduleInstance = &#123;</span><br><span class="line">					_invokeQueue: invokeQueue,</span><br><span class="line">					_runBlocks: runbBlocks,</span><br><span class="line">					requires: requires,</span><br><span class="line">					name: name,</span><br><span class="line">					provider: invokeLater('$provider', 'provider'),</span><br><span class="line">					factory: invokeLater('$provider', 'factory'),</span><br><span class="line">					service: invokeLater('$provider', 'service'),</span><br><span class="line">					value: invokeLater('$provider', 'value'),</span><br><span class="line">					constant: invokeLater('$provider', 'constant', 'unshift'),</span><br><span class="line">					animation: invokeLater('$animateProvider', 'register'),</span><br><span class="line">					filter: invokeLater('$filterProvider', 'register'),</span><br><span class="line">					controller: invokeLater('$controllerProvider', 'register'),</span><br><span class="line">					directive: invokeLater('$compileProvider', 'directive'),</span><br><span class="line">					config: config,</span><br><span class="line">					run: function(block) &#123;</span><br><span class="line">						runBlocks.push(block);</span><br><span class="line">						return this;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;;</span><br><span class="line"></span><br><span class="line">				if (configFn) &#123;</span><br><span class="line">					config(configFn);</span><br><span class="line">				&#125;</span><br><span class="line">				</span><br><span class="line">				return moduleInstance;</span><br><span class="line"></span><br><span class="line">				function invokeLater(provider, method, insertMethod) &#123;</span><br><span class="line">					return function() &#123;</span><br><span class="line">						invokeQueue[insertMethod || 'push']([provider, method, arguments]);</span><br><span class="line">						return moduleInstance;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="DOMContentLoaded_事件">DOMContentLoaded 事件</h3><h2 id="参考文献">参考文献</h2><ol>
+<li><a href="http://www.cnblogs.com/whitewolf/p/angular-module-declare-and-get.html" target="_blank" rel="external">Angular Module 声明与加载</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/16/javascript-angularJS-载入过程/" data-id="cidjgviyk000p8khz1a6x49nq" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/angularJS/">angularJS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-csharp-HttpModule" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/16/csharp-HttpModule/" class="article-date">
+  <time datetime="2015-08-16T13:32:37.000Z" itemprop="datePublished">2015-08-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/csharp/">csharp</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/16/csharp-HttpModule/">csharp-HttpModule</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="HttpRequest_Process_过程">HttpRequest Process 过程</h2><ol>
+<li>HttpRequest</li>
+<li>inetinfo.exe</li>
+<li>ASPNET_ISAPI.dll</li>
+<li>ASPNET_WP.exe</li>
+<li>HttpRuntime</li>
+<li>HttpApplicationFactory</li>
+<li>HttpApplication</li>
+<li>HttpMoudle</li>
+<li>HttpHandleFactory</li>
+<li>HttpHandler</li>
+<li>HttpHandler.ProcessRequest()</li>
+</ol>
+<p><strong>inetinfo.exe</strong>: www 服务进程,IIS 服务与 ASPNET_ISAPI.dll 都寄存在此进程中。<br><strong>ASPNET_ISAPI.dll</strong>：是处理 <em>.apsx 文件的 win32 组件。IIS 服务器只能识别 </em>.html 文件，当服务器发现请求的文件是 <em>.aspx 文件时，IIS 服务器将文件转交给 ASPNET_ISAPI.dll 处理。<br><em>*ASPNET_WP.exe</em></em>:ASP.NET 框架进程提供 .NET 运行的托管环境(NET CLR, common language running time)。</p>
+<p>ASP.NET 请求处理过程是基于管道模型。管道模型由多个 HttpMoudle 与 HttpHandler 组成。HttpRequest 请求被传递给各个 HttpMoudle,最终由某个 HttpHandler 处理。处理完成后，再沿原路径返回 HttpRequest 请求结果。</p>
+<p><strong>NOTE</strong>:HttpRequest 请求过程中，可以调用一个 HttpHandler，但可以调用多个 HttpMoudle。</p>
+<p>Init(HttpApplication context) ： 允许 HttpMoudle 向 HttpApplication 对象中注册自定义事件处理程序。<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">IHttpModule</span> &#123;</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">Init</span>(<span class="params">HttpApplication context</span>)</span>;</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"></span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="参考文献">参考文献</h2><ol>
+<li>参考文章关于 <a href="http://www.cnblogs.com/yuanyuan/archive/2010/11/15/1877709.html" target="_blank" rel="external">HttpHandler 与 HttpMoudle</a> 详解 关于 ASP.NET Request 处理过程。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/16/csharp-HttpModule/" data-id="cidjgvj0t002t8khz7drp5uft" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HttpModule/">HttpModule</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/csharp/">csharp</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-javascript-ejs" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/08/16/javascript-ejs/" class="article-date">
+  <time datetime="2015-08-16T13:03:41.000Z" itemprop="datePublished">2015-08-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/javascript/">javascript</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/08/16/javascript-ejs/">javascript-ejs</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="综述">综述</h2><p><strong>EJS</strong> 是一个 javascript 模板库，用来从 JSON 数据中生成 HTML 字符串。EJS 是专指 WEB 使用的模板引擎，其优点是带来明确、维护性良好的 HTML 代码结构。</p>
+<h2 id="EJS_使用">EJS 使用</h2><p>EJS 安装。<br><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## cnpm install ejs</span></span><br><span class="line">npm install ejs</span><br></pre></td></tr></table></figure></p>
+<h2 id="参考资料">参考资料</h2><ol>
+<li>参考 [EJS][<a href="http://baike.baidu.com/view/1585879.htm" target="_blank" rel="external">http://baike.baidu.com/view/1585879.htm</a>] 关于 ejs 的基本概念。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://fangjing828.github.io/2015/08/16/javascript-ejs/" data-id="cidjgviyc000i8khzn0ltrtm6" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ejs/">ejs</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-java-spring-filter" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/08/16/java-spring-filter/" class="article-date">
@@ -110,7 +613,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/16/java-spring-filter/" data-id="cide0mjtv0028ykhzsfdo5l0z" class="article-share-link">Share</a>
+      <a data-url="http://fangjing828.github.io/2015/08/16/java-spring-filter/" data-id="cidjgvj0500258khzhnnxk0el" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/filter/">filter</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/spring/">spring</a></li></ul>
@@ -215,7 +718,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/16/java-spring-listener/" data-id="cide0mju5002gykhzwhkb8w9n" class="article-share-link">Share</a>
+      <a data-url="http://fangjing828.github.io/2015/08/16/java-spring-listener/" data-id="cidjgvizn001n8khzsq6449iu" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/listener/">listener</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/spring/">spring</a></li></ul>
@@ -227,452 +730,10 @@
 
 
   
-    <article id="post-java-spring-jsp" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/15/java-spring-jsp/" class="article-date">
-  <time datetime="2015-08-15T07:24:31.000Z" itemprop="datePublished">2015-08-15</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/java/">java</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/15/java-spring-jsp/">java-spring-jsp</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="综述">综述</h2><p><strong>JSP</strong>(Java Server Page, Java 服务器页面），其本质上是一个简化的 Servlet 设计。JSP 技术与 ASP 技术类似，是在 HTML 插入 Java 程序段(Scriptlet) 与 JSP 标记（tag),从而形成 JSP 文件。</p>
-<h2 id="JSP_工作过程">JSP 工作过程</h2><ol>
-<li>client 发起 HTTP Request。</li>
-<li>server 对 HTTP Request 进行处理。</li>
-<li>如果该 jsp 页面第一次被请求，会编译成 servlet。</li>
-<li>servelt 动态生成 html 页面返回 client。<br><strong>NOTE</strong>: Servlet 是单例，所有的 client 访问的是同一个 servlet。<h2 id="JSP_文件组成">JSP 文件组成</h2></li>
-<li>静态数据，如 HTML 文件。</li>
-<li>JSP 指令，如 include 指令。</li>
-<li>JSP 脚本元素和变量。</li>
-<li>JSP 动作。</li>
-<li>用户自定义标签。<h3 id="静态数据">静态数据</h3>输入文件中的内容和输出给 HTTP 响应的内容完全一致，一般是指纯 HTML  页面。<h3 id="JSP_指令">JSP 指令</h3>控制 JSP 编译器如何生成 servlet,例如：<figure class="highlight jsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ include file=<span class="string">"somefile.jsp"</span> %&gt;</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>指令</th>
-<th>意义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>import</td>
-<td>java 导入声明</td>
-</tr>
-<tr>
-<td>contentType</td>
-<td>规定生成内容的类型。当生成 HTML 内容或当前字符集 character set 并非默认字符集时使用</td>
-</tr>
-<tr>
-<td>errorPage</td>
-<td>处理 HTTP 请求时，如果出现异常则显示该错误提示信息页面</td>
-</tr>
-<tr>
-<td>isErrorPage</td>
-<td>如果设置为 TRUE,则表示当前文件时一个错误提示页面</td>
-</tr>
-<tr>
-<td>isThreadSafe</td>
-<td>表示最终生成的 servlet 是否是线程安全的</td>
-</tr>
-</tbody>
-</table>
-<figure class="highlight jsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* import 指令可以使用多次 */</span></span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">"java.util.*"</span> %&gt;</span><br><span class="line">&lt;%@ page contentType=<span class="string">"text/html"</span> %&gt;</span><br><span class="line">&lt;%@ page isErrorPage=<span class="keyword">false</span> %&gt;</span><br><span class="line">&lt;%@ page isThreadSafe=<span class="keyword">true</span> %&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 引用 tablib - 描述了要使用的 JSP 标签库，需要指定一个前缀 */</span></span><br><span class="line">&lt;%@ taglib prefix=<span class="string">"myprefix"</span> uri=<span class="string">"taglib/mytag.lib"</span> %&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="JSP_脚本元素与变量">JSP 脚本元素与变量</h3><p>标准脚本变量：</p>
-<ol>
-<li>out - JSPWriter 用来写入响应流的数据</li>
-<li>page - servlet 自身</li>
-<li>pageContext - 一个 PageContext 实例包括和整个页面相联系的数据。一个给定 HTML 页面在多个 JSP 之间传递。</li>
-<li>request - HTTP request 对象</li>
-<li>response - HTTP response 对象</li>
-<li>session - session 对象<br>脚本元素： 插入 Java 代码到 jsp servlet.</li>
-<li><p>声明标签 - 变量定义，可定义静态数据成员。</p>
-<figure class="highlight jsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;%! <span class="keyword">int</span> serverInstanceVariable=<span class="number">1</span>; %&gt;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>脚本标签 - java servlet 类 _jspService() 方法中放入包含的语句。</p>
-<figure class="highlight jsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;% <span class="keyword">int</span> localStackBasedVariable = <span class="number">1</span>; out.println(localStackBasedVariable;%&gt;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>表达式标签</p>
-<figure class="highlight jsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;%= <span class="string">"expanded inline data"</span> + <span class="number">1</span> %&gt;</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<h3 id="JSP_动作">JSP 动作</h3><p>JSP 动作是一系列可以调用内建于网络服务器功能中的 XML 标签。</p>
-<h2 id="JSP_内置对象">JSP 内置对象</h2><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">/* application 对象存放全局变量，开始于服务器启动，直到服务器关闭。 */</span><br><span class="line">&lt;%=application.getAttribute("count")%&gt;</span><br><span class="line">/* config 对象 （web.xml）*/</span><br><span class="line">/* exception 对象异常 */</span><br><span class="line">/* out 对象是 JspWriter 类实例，是向客户端输出内容的常用对象。 */</span><br><span class="line">/* page 对象指向当前 JSP 页面本身 */</span><br><span class="line">/* request 对象，客户端的请求信息被封装在 request 对象 */</span><br><span class="line">&lt;div&gt;</span><br><span class="line">	请求方式：&lt;%=request.getMethod()%&gt;&lt;br&gt;</span><br><span class="line">	请求资源:&lt;%=request.getRequestURI()%&gt;&lt;br&gt;</span><br><span class="line">	请求协议:&lt;%=request.getServletPath()%&gt;&lt;br&gt;</span><br><span class="line">	请求文件名：&lt;%=request:request.getServletPath()%&gt;&lt;br&gt;</span><br><span class="line">	请求服务器 IP:&lt;%=request.getServerName()%&gt;</span><br><span class="line">	请求服务器端口：&lt;%=request.getRemoteAddr()%&gt;</span><br><span class="line">	客户端 IP 地址：&lt;%=request.getRemoteHost()%&gt;</span><br><span class="line">	表单提交过来的值：&lt;%=requet.getParameter("qwe")%&gt;&lt;br&gt;</span><br><span class="line">	/* tring[] getParameterValues(String name) 返回包含参数name的所有值的数组 */</span><br><span class="line">&lt;/div&gt;</span><br></pre></td></tr></table></figure>
-<p>request.getRequestDispatcher（’a.jsp’）.forward(request,response)</p>
-<p>response 对象包含了响应客户请求的有关信息</p>
-<h2 id="参考资料">参考资料</h2><ol>
-<li>参考文档 [JSP][<a href="http://baike.baidu.com/item/JSP/141543" target="_blank" rel="external">http://baike.baidu.com/item/JSP/141543</a>] 关于 JSP 基本原理的介绍。</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/15/java-spring-jsp/" data-id="cide0mjud002kykhzdghj5smj" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jsp/">jsp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/servlet/">servlet</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-java-thread-pool" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/14/java-thread-pool/" class="article-date">
-  <time datetime="2015-08-14T14:17:59.000Z" itemprop="datePublished">2015-08-14</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/java/">java</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/14/java-thread-pool/">java-thread-pool</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="综述">综述</h2><p><strong>线程池</strong>用于控制当前线程执行数量。线程池作用：</p>
-<ol>
-<li>减少创建和销毁线程的次数。</li>
-<li>控制当前线程并发数目。</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>class</th>
-<th>function</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ExecutorService</td>
-<td>真正的线程池接口</td>
-</tr>
-<tr>
-<td>ScheduledExecutorService</td>
-<td>类似 Timer / TimerTask，用于解决重复执行的问题</td>
-</tr>
-<tr>
-<td>ThreadPoolExecutor</td>
-<td>ExecutorService 默认实现</td>
-</tr>
-<tr>
-<td>ScheduledThreadPoolExecutor</td>
-<td>继承 ThreadPoolExecutor 的 ScheduleExecutorService 接口实现，周期性任务调度类的实现</td>
-</tr>
-</tbody>
-</table>
-<h2 id="线程池实现">线程池实现</h2><ol>
-<li>ThreadPoolExecutor<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize, <span class="keyword">int</span> maxmumPoolSize, <span class="keyword">long</span> keepAliveTime,</span><br><span class="line">TimeUnit unit, BlockingQueue&lt;Runnable&gt; workQueue, ThreadFactory threadFactory,</span><br><span class="line">RejectedExecutionHandler handler)</span></span>&#123;&#125;</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>parameter name</th>
-<th>note</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>corePoolSize</td>
-<td>线程池中保存的线程数，包括空闲线程</td>
-</tr>
-<tr>
-<td>maximumPoolSize</td>
-<td>线程池中允许的最大线程数</td>
-</tr>
-<tr>
-<td>keepAliveTime</td>
-<td>当线程数大于核心时，多余的空闲线程等待新任务的最长时间</td>
-</tr>
-<tr>
-<td>unit</td>
-<td>keeepAliveTime 参数时间单位</td>
-</tr>
-<tr>
-<td>workQueue</td>
-<td>执行前用于保持任务的队列， 此队列仅保存由 execute 方法提交的 Runnable 任务</td>
-</tr>
-<tr>
-<td>threadFactory</td>
-<td>执行程序创建线程时使用的工厂</td>
-</tr>
-<tr>
-<td>handler</td>
-<td>超出线程范围和队列容量而执行被阻塞时所使用的处理程序</td>
-</tr>
-<tr>
-<td>ThreadPoolExecutor</td>
-<td>Executor 类的底层实现</td>
-</tr>
-</tbody>
-</table>
-<ol>
-<li><p>newSingleThreadPool 实现： 固定大小线程池</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newFixedThreadPool</span><span class="params">(<span class="keyword">int</span> nThreads)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(nThreads, nThreads, <span class="number">0L</span>,</span><br><span class="line">	TimeUnit.MILLISECONDS, <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>newFixedThreadPool 实现： 单线程</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService newSingleThreadExecutor &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> FinalizableDelegateExecutorService</span><br><span class="line">		(<span class="keyword">new</span> ThreadPoolExecutor(<span class="number">1</span>, <span class="number">1</span>, <span class="number">0L</span>, TimeUnit.MILLISECONDS, </span><br><span class="line">	<span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;())); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>newCachedThreadPool 实现： 无界线程池，可以进行自动线程回收<br>无界线程池， maximumPoolSize </p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newCachedThreadPool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE,</span><br><span class="line">		<span class="number">60L</span>, TimeUnit.SECONDS,</span><br><span class="line">		<span class="keyword">new</span> SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<h2 id="java_修饰符_Sychronized">java 修饰符 <strong>Sychronized</strong></h2><figure class="highlight aspectj"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">method1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">/* 对当前方法实例的多线程访问生效 */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">synchronized</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">void</span> <span class="title">method2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">/* 所有的多线程访问生效 */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">synchronized</span>(<span class="keyword">this</span>) &#123;</span><br><span class="line">	<span class="comment">/* 区块 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在多线程程序中，应当尽可能使用线程安全的集合。java 线程安全的集合主要包括： ConcurrentLinkedQueue、ConcurrentHashMap、ConcurrentSkipListMap、ConcurrentSkipListSet 等(java.util.concurrent)。常用非同步集合如下:</p>
-<ol>
-<li>ArrayList 与 LinkedList</li>
-<li>HashSet 与 LinkedHandSet</li>
-<li>HashMap</li>
-<li>LinkedBlockingQueue<br>创建同步的非同步集合<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Collection&lt;String&gt; c = Collections.synchronizedCollection(<span class="keyword">new</span> ArrayList&lt;String&gt;());</span><br><span class="line">List&lt;String&gt; list = Collections.sychronizedList(<span class="keyword">new</span> ArrayList&lt;String&gt;());</span><br><span class="line">Set&lt;String&gt; s = Collections.sychronizedSet(<span class="keyword">new</span> HashSet&lt;String&gt;());</span><br><span class="line">Map&lt;String&gt; m = Collections.sychronizedMap(<span class="keyword">new</span> HashMap&lt;String&gt;());</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>常用的同步集合：Vector 与 HashTable。</p>
-<h2 id="java-util-concurrent-atomic">java.util.concurrent.atomic</h2><p>获取 java 自增主键<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">AtomicLong seq = <span class="keyword">new</span> AtomicLong(<span class="number">0</span>);</span><br><span class="line">seq.incrementAndGet();</span><br></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/14/java-thread-pool/" data-id="cide0mjtn0025ykhzaye2qrj0" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/thread-pool/">thread pool</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-c-unit-test" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/14/c-unit-test/" class="article-date">
-  <time datetime="2015-08-13T23:05:47.000Z" itemprop="datePublished">2015-08-14</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/14/c-unit-test/">c# - unit test</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="事务">事务</h2><p><a href="https://msdn.microsoft.com/zh-cn/library/system.transactions.transactionscope.aspx" target="_blank" rel="external">TransactionScope</a><br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> (TransactionScope scope = <span class="keyword">new</span> TransactionScope())</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">using</span> (SqlConnection connection = <span class="keyword">new</span> SqlConnection(connectionStr)</span><br><span class="line">	&#123;</span><br><span class="line">		connection.open();</span><br><span class="line">		SqlCommand command = <span class="keyword">new</span> SqlCommand(commandText, connection);</span><br><span class="line">		command.ExecuteNoQuery();</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// commit the transaction</span></span><br><span class="line">	scope.commit();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h2 id="多线程并发测试">多线程并发测试</h2>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/14/c-unit-test/" data-id="cide0dmyk000jykhzpwlxivm5" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c#</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/unit-test/">unit test</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-java-spring-xsd" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/13/java-spring-xsd/" class="article-date">
-  <time datetime="2015-08-13T14:59:39.000Z" itemprop="datePublished">2015-08-13</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/java/">java</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/13/java-spring-xsd/">java - spring xsd</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="综述">综述</h2><p><strong><a href="http://www.w3school.com.cn/schema/index.asp" target="_blank" rel="external">xsd</a></strong> (XML Schema Definition, XML 结构定义)<br><a href="http://www.springframework.org/schema/beans/spring-beans-4.2.xsd" target="_blank" rel="external">spring-beans.xsd</a> 说明</p>
-<blockquote>
-<p>This defines a simple and consistent way of creating a namespace of JavaBeans objects, managed by a Spring BeanFactory, read by XmlBeanDefinitionReader (with DefaultBeanDefinitionDocumentReader).<br>Each “bean” element in this document defines a JavaBean. Typecally the bean class is specified, along with JavaBeans properties and/or constructor arguments.<br>A bean instance can be a “singleton” (shared instance) or a “prototype” (independent instance). Further scopes can be provided by extended bean factories, for example in a web environment et.al.</p>
-</blockquote>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/13/java-spring-xsd/" data-id="cide0mju0002cykhzxtohpj7y" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/spring/">spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xsd/">xsd</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-mysql-基本命令" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/13/mysql-基本命令/" class="article-date">
-  <time datetime="2015-08-13T14:08:40.000Z" itemprop="datePublished">2015-08-13</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/13/mysql-基本命令/">mysql - 基本命令</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="数据库">数据库</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建数据库</span></span><br><span class="line"><span class="operator"><span class="keyword">create</span> &lt;<span class="keyword">database</span>&gt;;</span></span><br><span class="line"><span class="comment">-- 使用数据库</span></span><br><span class="line"><span class="operator"><span class="keyword">use</span> &lt;<span class="keyword">database</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>mysql 数据库连接<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql --host=<span class="tag">&lt;<span class="title">host</span>&gt;</span> --port=<span class="tag">&lt;<span class="title">port</span>&gt;</span> --usr=<span class="tag">&lt;<span class="title">user</span>&gt;</span> --password=<span class="tag">&lt;<span class="title">password</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<p>数据库备份与还原</p>
-<h2 id="数据表">数据表</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">drop</span> <span class="keyword">table</span> <span class="keyword">if</span> exist <span class="string">`&lt;table&gt;`</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">create</span> <span class="string">`&lt;table&gt;`</span>&#123;</span><br><span class="line">&#125;;</span></span><br></pre></td></tr></table></figure>
-<h2 id="字段">字段</h2><p>新增字段<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">alter</span> <span class="keyword">table</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">add</span> <span class="keyword">column</span> &lt;<span class="keyword">field</span>&gt; &lt;<span class="keyword">type</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<p>删除字段<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">user</span> <span class="keyword">drop</span> <span class="keyword">column</span> &lt;<span class="keyword">field</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<h2 id="索引">索引</h2><p>创建普通索引<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">alter</span> <span class="keyword">table</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">add</span> <span class="keyword">index</span> &lt;<span class="keyword">index</span>&gt; ([<span class="keyword">column</span>[,...[,<span class="keyword">column</span>]]]</span></span><br></pre></td></tr></table></figure></p>
-<p>创建 unique 索引<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">alter</span> <span class="keyword">table</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">add</span> <span class="keyword">unique</span> &lt;<span class="keyword">index</span>&gt; ([<span class="keyword">column</span>[,...[,<span class="keyword">column</span>]]]</span></span><br></pre></td></tr></table></figure></p>
-<p>创建 primary key 索引<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">alter</span> <span class="keyword">table</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">add</span> primary <span class="keyword">key</span> &lt;<span class="keyword">index</span>&gt; ([<span class="keyword">column</span>[,...[,<span class="keyword">column</span>]]]</span></span><br></pre></td></tr></table></figure></p>
-<p>删除索引<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">alter</span> <span class="keyword">table</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">drop</span> <span class="keyword">index</span> &lt;<span class="keyword">index</span>&gt;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">drop</span> primary <span class="keyword">key</span></span></span><br></pre></td></tr></table></figure></p>
-<p>查看索引<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">show</span> <span class="keyword">index</span> <span class="keyword">from</span> &lt;<span class="keyword">table</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
-<h2 id="数据操作">数据操作</h2><p>mysql 插入时条件判断<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- insert into if exists</span></span><br><span class="line"><span class="operator"><span class="keyword">insert</span> <span class="keyword">into</span> &lt;<span class="keyword">table</span>&gt; ([field1[,field2[,...[,fieldn]]]]) </span><br><span class="line">select [field1[,field2[,...[,fieldn]]]] <span class="keyword">from</span> dual </span><br><span class="line"><span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span> (select <span class="keyword">field</span> <span class="keyword">from</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">where</span> <span class="keyword">field</span> = ?</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 创建唯一索引(unique index)</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> &lt;<span class="keyword">table</span>&gt; <span class="keyword">insert</span> <span class="keyword">into</span> &lt;<span class="keyword">table</span>&gt; ([field1[,field2[,...[,fieldn]]]])</span><br><span class="line"><span class="keyword">on</span> <span class="keyword">duplicate</span> <span class="keyword">key</span> <span class="keyword">update</span> <span class="keyword">field</span> = <span class="keyword">field</span></span></span><br></pre></td></tr></table></figure></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/13/mysql-基本命令/" data-id="cide0dmye000eykhzz1ilwb7h" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/database/">database</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mysql/">mysql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-javascript-DOM_Event-页面加载事件" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/08/12/javascript-DOM_Event-页面加载事件/" class="article-date">
-  <time datetime="2015-08-12T14:01:56.000Z" itemprop="datePublished">2015-08-12</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/javascript/">javascript</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/08/12/javascript-DOM_Event-页面加载事件/">javascript - DOM Event - 页面加载完成事件</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="综述">综述</h2><p>DOM 加载完成事件：DOMContentLoaded、window.onload、onreadystatechange,对于 IE 浏览器还可以使用 <a href="http://javascript.nwbox.com/IEContentLoaded/" target="_blank" rel="external">doscroll</a> 方法进行判断。<br>DOMContentLoaded 事件是在 DOM 加载解析完毕时触发,是判断页面加载完成的首选方法。window.onload 需要等待所有的外部事件加载完毕时触发，方法被主流浏览器所支持。onreadystatechange 一般作为判断页面加载是否完成的备选事件。下面源码介绍如何利用页面加载方法实现 JQuery.ready。</p>
-<h2 id="DOMContentLoaded">DOMContentLoaded</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="built_in">document</span>.addEventListener) &#123;</span><br><span class="line">	<span class="built_in">document</span>.addEventListener(<span class="string">"DOMContentLoaded"</span>, DOMContentLoaded, <span class="literal">false</span>);</span><br><span class="line">	<span class="comment">// A fallback to window.onload, that will always work</span></span><br><span class="line">	<span class="built_in">window</span>.addEventListener(<span class="string">"load"</span>, JQuery.ready, <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="window-onload">window.onload</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="built_in">document</span>.addEventListener) &#123;</span><br><span class="line">	<span class="built_in">document</span>.addEventListener(<span class="string">"load"</span>, JQuery.ready, <span class="literal">false</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	<span class="built_in">window</span>.attachEvent(<span class="string">"onload"</span>, JQuery.ready, <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="onreadstatechange">onreadstatechange</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="built_in">document</span>.addEventListener) &#123;</span><br><span class="line">	<span class="built_in">document</span>.addEventListener(<span class="string">"DOMContentLoaded"</span>, DOMContentLoaded, <span class="literal">false</span>);</span><br><span class="line">	<span class="built_in">window</span>.addEventListener(<span class="string">"load"</span>, JQuery.ready, <span class="literal">false</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	<span class="built_in">document</span>.attachEvent(<span class="string">"onreadystatechange"</span>, DOMContentLoaded);</span><br><span class="line">	<span class="built_in">window</span>.attachEvent(<span class="string">"onload"</span>, JQuery.ready);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>DOMContentLoaded 实现<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">DOMContentLoaded = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (<span class="built_in">document</span>.addEventListener) &#123;</span><br><span class="line">		<span class="built_in">document</span>.removeEventListener(<span class="string">"DOMContentLoaded"</span>,</span><br><span class="line">		DOMContentLoaded, <span class="literal">false</span>);</span><br><span class="line">		JQuery.ready();</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">document</span>.readState === <span class="string">"complete"</span>) &#123;</span><br><span class="line">		<span class="built_in">document</span>.datachEvent(<span class="string">"onreadystatechange"</span>, DOMContentLoaded);</span><br><span class="line">		JQuery.ready();	</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h2 id="doscroll">doscroll</h2><p>DOM 未加载完成，调用 doScroll 方法时，会产生异常。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span> <span class="title">doScrollCheck</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (!JQuery.isReady) &#123;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			top.doScroll(<span class="string">"left"</span>);</span><br><span class="line">		&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">			<span class="keyword">return</span> setTimeout(doScrollCheck, <span class="number">50</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		JQuery.ready();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure></p>
-<h2 id="document-readyState">document.readyState</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Catch cases where $(document).ready() is called after the browser event has already occurred.</span></span><br><span class="line"><span class="comment">// we once tried to use readyState "interactive" here, but it caused issues like the one</span></span><br><span class="line"><span class="comment">// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">document</span>.readyState === <span class="string">"complete"</span>) &#123;</span><br><span class="line">    <span class="comment">// 延迟 1 毫秒之后，执行 ready 函数</span></span><br><span class="line">    setTimeout(jQuery.ready, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="JQuery-ready()">JQuery.ready()</h2><p>在 jQuery 中完整的代码如下所示。位于 jQuery 1.8.3 源代码的 #842 行<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">jQuery.ready.promise = <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (!readyList) &#123;</span><br><span class="line">		readyList = jQuery.Deferred();</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">if</span> (<span class="built_in">document</span>.readyState === <span class="string">"complete"</span>) &#123;</span><br><span class="line">			setTimeout(jQuery.ready, <span class="number">1</span>);</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">document</span>.addEventListener) &#123;</span><br><span class="line">			<span class="built_in">document</span>.addEventListener(<span class="string">"DOMContentLoaded"</span>, DOMContentLoaded, <span class="literal">false</span>);</span><br><span class="line">			<span class="built_in">window</span>.addEventListener(<span class="string">"load"</span>, jQuery.ready, <span class="literal">false</span>);</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123; <span class="comment">// IE</span></span><br><span class="line">			<span class="built_in">document</span>.attachEvent(<span class="string">"onreadystatechange"</span>, DOMContentLoaded);</span><br><span class="line">			<span class="built_in">window</span>.attachEvent(<span class="string">"onload"</span>, JQuery.ready);</span><br><span class="line">		</span><br><span class="line">			<span class="keyword">var</span> top = <span class="literal">false</span>;</span><br><span class="line">			<span class="keyword">try</span> &#123;</span><br><span class="line">				top = <span class="built_in">window</span>.frameElement == <span class="literal">null</span> &amp;&amp; <span class="built_in">document</span>.documentElement;</span><br><span class="line">			&#125; <span class="keyword">catch</span> (e) &#123;&#125;</span><br><span class="line">			</span><br><span class="line">			<span class="keyword">if</span> (top &amp;&amp; top.doScroll) &#123;</span><br><span class="line">				(<span class="function"><span class="keyword">function</span> <span class="title">doScrollCheck</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">					<span class="keyword">if</span> (!jQuery.isReady) &#123;</span><br><span class="line">						<span class="keyword">try</span> &#123;</span><br><span class="line">							top.doScroll(<span class="string">"left"</span>);</span><br><span class="line">						&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">							<span class="keyword">return</span> setTimeout(doScrollCheck, <span class="number">50</span>);</span><br><span class="line">						&#125;</span><br><span class="line">						</span><br><span class="line">						jQuery.ready();</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;)();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> readyList.promise(obj);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>ready 实现<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ready: <span class="function"><span class="keyword">function</span>(<span class="params">fn</span>) </span>&#123;</span><br><span class="line">	jQuery.ready.promise().done(fn);</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>在页面引用 jQuery 脚本后，执行 jQuery 初始化函数，初始化函数中创建 ready 函数。我们通过 ready 函数注册事件处理之前，jQuery 完成页面检测代码注册。当页面完全加载之后，注册函数就会被调用。</p>
-<ul>
-<li>JQuery(document).ready(function(){});</li>
-<li>JQuery(function(){});</li>
-<li>$(document).ready(function(){});</li>
-<li>$(function(){});<br>上述写法均可实现 DOM 加载完毕时，执行 JQuery.ready()。<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">readyList.fireWith(<span class="built_in">document</span>, [jQuery]);</span><br><span class="line"><span class="keyword">if</span> (jQuery.fn.trigger) &#123;</span><br><span class="line">	jQuery(<span class="built_in">document</span>).trigger(<span class="string">"ready"</span>).off(<span class="string">"ready"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://fangjing828.github.io/2015/08/12/javascript-DOM_Event-页面加载事件/" data-id="cide1kwvu0033ykhzeg5m36ha" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DOM/">DOM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DOMContentLoaded/">DOMContentLoaded</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/onload/">onload</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/web/">web</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
+    <nav id="page-nav">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+    </nav>
   
 </section>
         
@@ -682,7 +743,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/java/">java</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/javascript/">javascript</a><span class="category-list-count">1</span></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/csharp/">csharp</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/java/">java</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/javascript/">javascript</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mysql/">mysql</a><span class="category-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -691,7 +752,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOM/">DOM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOMContentLoaded/">DOMContentLoaded</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c#</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/database/">database</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/filter/">filter</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jsp/">jsp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/listener/">listener</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/onload/">onload</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/servlet/">servlet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring/">spring</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-pool/">thread pool</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/unit-test/">unit test</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web/">web</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xsd/">xsd</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOM/">DOM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOMContentLoaded/">DOMContentLoaded</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HttpModule/">HttpModule</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IPEndPoint/">IPEndPoint</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/angularJS/">angularJS</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c#</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/config/">config</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/csharp/">csharp</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/database/">database</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ejs/">ejs</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/filter/">filter</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/framework/">framework</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/httpResponse/">httpResponse</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jsp/">jsp</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/listener/">listener</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/onload/">onload</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/servlet/">servlet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spring/">spring</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/thread-pool/">thread pool</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/unit-test/">unit test</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web/">web</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/xsd/">xsd</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -700,7 +761,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/DOM/" style="font-size: 10px;">DOM</a> <a href="/tags/DOMContentLoaded/" style="font-size: 10px;">DOMContentLoaded</a> <a href="/tags/c/" style="font-size: 10px;">c#</a> <a href="/tags/database/" style="font-size: 10px;">database</a> <a href="/tags/filter/" style="font-size: 10px;">filter</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 10px;">javascript</a> <a href="/tags/jsp/" style="font-size: 10px;">jsp</a> <a href="/tags/listener/" style="font-size: 10px;">listener</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/onload/" style="font-size: 10px;">onload</a> <a href="/tags/servlet/" style="font-size: 10px;">servlet</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/thread-pool/" style="font-size: 10px;">thread pool</a> <a href="/tags/unit-test/" style="font-size: 10px;">unit test</a> <a href="/tags/web/" style="font-size: 10px;">web</a> <a href="/tags/xsd/" style="font-size: 10px;">xsd</a>
+      <a href="/tags/DOM/" style="font-size: 10px;">DOM</a> <a href="/tags/DOMContentLoaded/" style="font-size: 10px;">DOMContentLoaded</a> <a href="/tags/HttpModule/" style="font-size: 10px;">HttpModule</a> <a href="/tags/IPEndPoint/" style="font-size: 10px;">IPEndPoint</a> <a href="/tags/angularJS/" style="font-size: 12.5px;">angularJS</a> <a href="/tags/c/" style="font-size: 10px;">c#</a> <a href="/tags/config/" style="font-size: 10px;">config</a> <a href="/tags/csharp/" style="font-size: 15px;">csharp</a> <a href="/tags/database/" style="font-size: 10px;">database</a> <a href="/tags/ejs/" style="font-size: 10px;">ejs</a> <a href="/tags/filter/" style="font-size: 10px;">filter</a> <a href="/tags/framework/" style="font-size: 12.5px;">framework</a> <a href="/tags/httpResponse/" style="font-size: 10px;">httpResponse</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/javascript/" style="font-size: 17.5px;">javascript</a> <a href="/tags/jsp/" style="font-size: 10px;">jsp</a> <a href="/tags/listener/" style="font-size: 10px;">listener</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/onload/" style="font-size: 10px;">onload</a> <a href="/tags/servlet/" style="font-size: 10px;">servlet</a> <a href="/tags/spring/" style="font-size: 15px;">spring</a> <a href="/tags/thread-pool/" style="font-size: 10px;">thread pool</a> <a href="/tags/unit-test/" style="font-size: 10px;">unit test</a> <a href="/tags/web/" style="font-size: 10px;">web</a> <a href="/tags/xsd/" style="font-size: 10px;">xsd</a>
     </div>
   </div>
 
@@ -709,7 +770,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">八月 2015</a><span class="archive-list-count">8</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">八月 2015</a><span class="archive-list-count">16</span></li></ul>
     </div>
   </div>
 
@@ -721,23 +782,23 @@
       <ul>
         
           <li>
-            <a href="/2015/08/16/java-spring-filter/">java-spring-filter</a>
+            <a href="/2015/08/19/csharp-HttpResponse-rewrite/">csharp-HttpResponse-rewrite</a>
           </li>
         
           <li>
-            <a href="/2015/08/16/java-spring-listener/">java-spring-listener</a>
+            <a href="/2015/08/18/javascript-angularJS-表单验证/">javascript-angularJS-表单验证</a>
           </li>
         
           <li>
-            <a href="/2015/08/15/java-spring-jsp/">java-spring-jsp</a>
+            <a href="/2015/08/18/csharp-IPEndPoint/">csharp-IPEndPoint</a>
           </li>
         
           <li>
-            <a href="/2015/08/14/java-thread-pool/">java-thread-pool</a>
+            <a href="/2015/08/18/java-framework-config/">java-framework-config</a>
           </li>
         
           <li>
-            <a href="/2015/08/14/c-unit-test/">c# - unit test</a>
+            <a href="/2015/08/17/java-spring-framework/">java-spring-framework</a>
           </li>
         
       </ul>
